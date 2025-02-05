@@ -102,4 +102,3 @@ If you encounter connectivity issues:
 2. Verify interface states with `ip link show`
 3. Check VXLAN interface: `ip -d link show vxlan0`
 4. Ensure tcpdump is not already running
-```
