@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 # Import required libraries
 # Containernet: Extended Mininet for container networking
 from comnetsemu.net import Containernet
