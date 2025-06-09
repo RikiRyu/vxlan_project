@@ -1,104 +1,88 @@
+This repository contains a Python script (`vxlan_lab.py`) that demonstrates the functionality of VXLAN (Virtual Extensible LAN) using Containernet. It sets up a network topology with two Virtual Tunnel Endpoints (VTEPs) and two separate LAN segments, showing how Layer 2 frames are encapsulated into IP/UDP packets to extend a virtual network across an IP transport network.
 
-# VXLAN Lab Implementation
+## Project Goal
 
-This project demonstrates VXLAN (Virtual Extensible LAN) functionality using ComNetEmu. It creates a network topology with two segments connected via VXLAN tunneling and shows the encapsulation process through packet analysis.
+The main goal of this project is to illustrate VXLAN encapsulation and transparent Layer 2 connectivity between different hosts over an IP transport network. The setup uses Linux bridges as VTEPs within Containernet.
 
-## Network Topology Details
+## Topology
 
-1. Network Segments Configuration:
-   - Subnet: 10.0.0.0/24
-   - First Segment:
-     - h1 (10.0.0.1)
-     - h2 (10.0.0.2)
-     - Connected to br1 (VTEP1)
-   - Second Segment:
-     - h3 (10.0.0.3)
-     - h4 (10.0.0.4)
-     - Connected to br2 (VTEP2)
+The deployed topology consists of:
+* **Two hosts (h1, h2)** connected to **VTEP 1 (br1)**.
+* **Two hosts (h3, h4)** connected to **VTEP 2 (br2)**.
+* **VTEP 1 (br1)** and **VTEP 2 (br2)** are connected via a Layer 3 (IP) transport network.
+* A single VXLAN tunnel (VNI 100) is established between br1 and br2, allowing h1/h2 and h3/h4 to communicate as if they were on the same Layer 2 segment.
 
-2. VXLAN Tunnel Configuration:
-   - Transport Network: 192.168.1.0/24
-   - VTEP1 (br1): 192.168.1.1
-   - VTEP2 (br2): 192.168.1.2
-   - VNI (VXLAN Network Identifier): 100
-   - UDP Port: 4789 (Standard VXLAN port)
-   - MTU: 1500 bytes (effective payload ~1400 bytes due to VXLAN overhead)
-   
+  h1 ----+                  +---- h3
+         |                  |
+  h2 ----+---- [br1] ----- [br2] ----+---- h4
+               (VTEP 1)     (VTEP 2)  |
+                     \      /         |
+                      \    /          |
+                   IP Transport       +---- (Other LAN segments)
+                      Network
+
+
 ## Requirements
 
-- ComNetEmu installed in a virtual machine (https://drive.google.com/drive/folders/1FP5Bx2DHp7oV57Ja38_x01ABiw3wK11M?usp=string)
-- Oracle VM VirtualBox
-- Wireshark for packet analysis
-- Python 3
-- SSH access to VM (default: ssh -X -p 2222 vagrant@localhost)
+To run this lab, you need a virtual machine (VM) or a Linux environment with the following software installed:
 
-## Installation and Setup
+* **Containernet**: An extension of Mininet for container-based networking.
+* **Wireshark**: For detailed packet analysis.
+* **Tshark**: The command-line version of Wireshark, used for preliminary packet analysis within the script.
+* **iperf**: For performance testing (throughput measurement).
+* **Python 3**: The script is written in Python 3.
 
-1. Connect to your VM:
-```bash
-ssh -X -p 2222 vagrant@localhost
-```
+## How to Run the Lab
 
-2. Create and save the Python script (vxlan_lab.py)
-```bash
-nano vxlan_lab.py
-# Copy and paste the script content
-# Save with Ctrl+O, exit with Ctrl+X
-```
+1.  **Clone the repository (or copy the script):**
+    ```bash
+    git clone [https://github.com/RikiRyu/vxlan_project.git](https://github.com/RikiRyu/vxlan_project.git)
+    cd vxlan_project
+    ```
 
-## Running the Demo
+2.  **Execute the script:**
+    Run the Python script with `sudo` privileges:
+    ```bash
+    sudo python3 vxlan_lab.py
+    ```
 
-1. Execute the script:
-```bash
-sudo python3 vxlan_lab.py
-```
+3.  **Observe the output:**
+    The script will perform the following actions, with informative messages displayed in your terminal:
+    * Clean up any previous Mininet instances.
+    * Set up the Containernet topology.
+    * Configure VTEPs (br1, br2) as Linux bridges.
+    * Configure IP addresses for the transport network interfaces on VTEPs.
+    * Establish the VXLAN tunnel between br1 and br2 with VNI 100.
+    * Configure IP addresses for all hosts (h1, h2, h3, h4).
+    * **Execute automatic tests:**
+        * `ping` tests between h1 and h3, and h2 and h4, demonstrating Layer 2 connectivity over VXLAN.
+        * An `iperf` TCP test between h1 and h3 to show data throughput.
+    * **Capture network traffic:** `tcpdump` will capture VXLAN traffic on the `br1-eth2` (transport) interface, saving it to `/tmp/vxlan_outer.pcap`.
+    * **Perform preliminary analysis:** `tshark` will analyze the captured PCAP file and print a summary of detected VXLAN VNIs and an example packet dissection directly in the terminal.
+    * Enter the **Mininet CLI**, allowing you to perform further manual tests (e.g., `h1 ping h4`, `br1 ip a`, `br2 brctl show`).
 
-2. Test basic connectivity:
-```bash
-mininet> h1 ping h3
-```
+4.  **Exit the Mininet CLI:**
+    Type `exit` and press Enter to terminate the Mininet simulation. The script will then perform a final cleanup.
 
-3. Test MTU limitations:
-```bash
-mininet> h1 ping -s 1400 h3  # Should work
-mininet> h1 ping -s 1500 h3  # Should fail due to VXLAN overhead
-```
+## Analyzing the Captured Traffic with Wireshark
 
-## Packet Analysis
+After the script finishes, a packet capture file named `vxlan_outer.pcap` will be available at `/tmp/vxlan_outer.pcap`.
 
-The script automatically captures packets in `/tmp/vxlan_outer.pcap`. To analyze:
-1. Exit the Mininet CLI (`exit` command)
-2. Open the capture file in Wireshark
-3. Look for:
-   - VXLAN encapsulation (UDP port 4789)
-   - Outer Headers:
-     - Source IP: 192.168.1.1 (br1)
-     - Destination IP: 192.168.1.2 (br2)
-     - UDP destination port: 4789
-   - Inner Headers:
-     - Original source IP (10.0.0.x)
-     - Original destination IP (10.0.0.x)
-     - Original payload
+To analyze the VXLAN encapsulation:
 
-## Key Findings
+1.  **Open Wireshark:**
+    ```bash
+    wireshark /tmp/vxlan_outer.pcap
+    ```
+2.  **Apply a display filter:**
+    In the Wireshark filter bar, type `vxlan` or `udp.port == 4789` and press Enter. This will show only the VXLAN encapsulated packets.
 
-1. VXLAN Encapsulation:
-   - Successfully encapsulates Layer 2 frames in UDP/IP
-   - Adds 50 bytes overhead
+3.  **Inspect packet details:**
+    Select any VXLAN packet and expand its details in the "Packet Details" pane. You will observe:
+    * **Outer IP Header**: The IP addresses of the VTEPs (e.g., 192.168.1.1 and 192.168.1.2).
+    * **Outer UDP Header**: The source and destination UDP ports, with the destination typically being 4789 (the standard VXLAN port).
+    * **VXLAN Header**: This header contains the VNI (Virtual Network Identifier, which should be `100` in our case) and other flags.
+    * **Inner Ethernet Frame**: This is the original Layer 2 frame (e.g., ARP requests, ICMP echo requests/replies, or TCP segments from iperf) that was encapsulated. Its source and destination MAC addresses will be those of the hosts (e.g., h1's MAC and h3's MAC).
+    * **Inner IP Header**: The IP addresses of the communicating hosts (e.g., 10.0.0.1 and 10.0.0.3).
 
-2. MTU Behavior:
-   - Packets up to ~1400 bytes work correctly
-   - Larger packets fail due to VXLAN overhead
-   - Demonstrates importance of MTU considerations in VXLAN deployments
-
-3. Network Segmentation:
-   - Different subnets successfully communicate
-   - VXLAN provides Layer 2 connectivity over Layer 3
-
-## Troubleshooting
-
-If you encounter connectivity issues:
-1. Clean up Mininet: `sudo mn -c`
-2. Verify interface states with `ip link show`
-3. Check VXLAN interface: `ip -d link show vxlan0`
-4. Ensure tcpdump is not already running
+This detailed dissection in Wireshark visually confirms how VXLAN effectively tunnels Layer 2 traffic over a Layer 3 network.
