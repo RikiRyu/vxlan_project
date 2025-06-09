@@ -12,6 +12,7 @@ The deployed topology consists of:
 * **VTEP 1 (br1)** and **VTEP 2 (br2)** are connected via a Layer 3 (IP) transport network.
 * A single VXLAN tunnel (VNI 100) is established between br1 and br2, allowing h1/h2 and h3/h4 to communicate as if they were on the same Layer 2 segment.
 
+```
   h1 ----+                  +---- h3
          |                  |
   h2 ----+---- [br1] ----- [br2] ----+---- h4
@@ -20,7 +21,7 @@ The deployed topology consists of:
                       \    /          |
                    IP Transport       +---- (Other LAN segments)
                       Network
-
+```
 
 ## Requirements
 
