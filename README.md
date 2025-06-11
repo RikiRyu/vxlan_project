@@ -15,14 +15,13 @@ The deployed topology consists of:
 * A single VXLAN tunnel (VNI 100) is established between br1 and br2, allowing h1/h2 and h3/h4 to communicate as if they were on the same Layer 2 segment.
 
 ```bash
-  h1 ----+                  +---- h3
-         |                  |
-  h2 ----+---- [br1] ----- [br2] ----+---- h4
-               (VTEP 1)     (VTEP 2)  |
-                     \      /         |
-                      \    /          |
-                   IP Transport       +---- (Other LAN segments)
-                      Network
+ h1 ---+                         +--- h3
+            |                         |
+            +--- [br1] ----- [br2] ---+
+            |    (VTEP 1)    (VTEP 2) |
+      h2 ---+                         +--- h4
+                                      |
+                                      +---- (Other LAN segments)
 ```
 
 ## Requirements and VM Setup
