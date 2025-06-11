@@ -12,7 +12,7 @@ The deployed topology consists of:
 * **VTEP 1 (br1)** and **VTEP 2 (br2)** are connected via a Layer 3 (IP) transport network.
 * A single VXLAN tunnel (VNI 100) is established between br1 and br2, allowing h1/h2 and h3/h4 to communicate as if they were on the same Layer 2 segment.
 
-```
+```bash
   h1 ----+                  +---- h3
          |                  |
   h2 ----+---- [br1] ----- [br2] ----+---- h4
@@ -25,7 +25,7 @@ The deployed topology consists of:
 
 ## Requirements
 
-To run this lab, you need a virtual machine (VM) or a Linux environment with the following software installed:
+To run this project, you need a virtual machine (VM) or a Linux environment with the following software pre-installed and configured:
 
 * **Containernet**: An extension of Mininet for container-based networking.
 * **Wireshark**: For detailed packet analysis.
@@ -33,9 +33,22 @@ To run this lab, you need a virtual machine (VM) or a Linux environment with the
 * **iperf**: For performance testing (throughput measurement).
 * **Python 3**: The script is written in Python 3.
 
+**VM Access:**
+For VirtualBox download the virtual machine image from the following link:
+https://drive.google.com/drive/folders/1FP5Bx2DHp7oV57Ja38_x01ABiw3wK11M?usp=
+sharing
+Then import the appliance. After importing it please be sure to set a proper number of
+CPUs and ram memory for the virtual machine. In addition, delete the shared folder in
+the shared folder settings of the virtual machine.
+For a better “manageability” instead of running commands directly into the VM it might
+be worth to use your own terminal and ssh into the VM. To do so, run
+ssh -X -p 2222 vagrant@localhost
+after starting the VM. The password is “vagrant”
+
 ## How to Run the Lab
 
-1.  **Clone the repository (or copy the script):**
+1.  **Clone the repository (or copy the script) onto your VM:**
+    Once logged into your VM via SSH, you can clone this repository:
     ```bash
     git clone [https://github.com/RikiRyu/vxlan_project.git](https://github.com/RikiRyu/vxlan_project.git)
     cd vxlan_project
@@ -73,12 +86,12 @@ To analyze the VXLAN encapsulation:
 
 1.  **Open Wireshark:**
     ```bash
-    wireshark /tmp/vxlan_outer.pcap
+    wireshark /tmp/vxlan_outer.pcap wireshark /tmp/vxlan_outer.pcap
     ```
 2.  **Apply a display filter:**
     In the Wireshark filter bar, type `vxlan` or `udp.port == 4789` and press Enter. This will show only the VXLAN encapsulated packets.
 
-3.  **Inspect packet details:**
+3.  wireshark /tmp/vxlan_outer.pcap **Inspect packet details:**
     Select any VXLAN packet and expand its details in the "Packet Details" pane. You will observe:
     * **Outer IP Header**: The IP addresses of the VTEPs (e.g., 192.168.1.1 and 192.168.1.2).
     * **Outer UDP Header**: The source and destination UDP ports, with the destination typically being 4789 (the standard VXLAN port).

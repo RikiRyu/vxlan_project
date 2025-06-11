@@ -36,6 +36,8 @@ BR2_TRANSPORT_IF = 'br2-eth2'
 PCAP_FILE = '/tmp/vxlan_outer.pcap'
 # Duration of tcpdump capture for automatic tests
 CAPTURE_DURATION_SECONDS = 5
+# Bandwidth limit for iperf test (e.g., '10M' for 10 Mbps, '1M' for 1 Mbps, '500K' for 500 Kbps)
+IPERF_BANDWIDTH_LIMIT = '5M' # Reduced to 5 Mbps to mitigate retransmissions
 
 # Cleanup function to remove old Mininet instances and pcap files
 def cleanup():
@@ -148,12 +150,12 @@ def create_vxlan_topo():
    h2_ping_h4_output = h2.cmd(f'ping -c 4 {H4_IP.split("/")[0]}')
    info(f"  Ping result h2 -> h4:\n{h2_ping_h4_output}\n")
 
-   info(f"  Executing iperf TCP test from {h1.name} to {h3.name} (for {CAPTURE_DURATION_SECONDS}s)...\n")
-   # Start iperf server on h3 in the background
+   info(f"  Executing iperf TCP test from {h1.name} to {h3.name} (for {CAPTURE_DURATION_SECONDS}s, bandwidth limit {IPERF_BANDWIDTH_LIMIT})...\n")
+   # Start iperf server on h3 in background
    h3.cmd('iperf -s &')
    time.sleep(1) # Wait for iperf server to start
-   # Start iperf client on h1
-   iperf_output = h1.cmd(f'iperf -c {H3_IP.split("/")[0]} -t {CAPTURE_DURATION_SECONDS}')
+   # Start iperf client on h1 with bandwidth limit
+   iperf_output = h1.cmd(f'iperf -c {H3_IP.split("/")[0]} -t {CAPTURE_DURATION_SECONDS} -b {IPERF_BANDWIDTH_LIMIT}')
    info(f"  Iperf result h1 -> h3:\n{iperf_output}\n")
    h3.cmd('pkill iperf') # Terminate iperf server
 
@@ -166,7 +168,7 @@ def create_vxlan_topo():
    info("    Look for UDP packets on port 4789 to see VXLAN encapsulation.\n")
 
    # Example of preliminary analysis with tshark (requires tshark installed on the VM)
-   info("\n*** Preliminary analysis of PCAP file with tshark...\n")
+   info("\n*** Preliminary analysis of PCAP file with tshark (if available)...\n")
    try:
        # Count captured VXLAN VNIs and show a summary
        tshark_output = subprocess.check_output(f'tshark -r {PCAP_FILE} -Y "vxlan" -T fields -e vxlan.vni | sort | uniq -c', shell=True).decode()
@@ -188,7 +190,9 @@ def create_vxlan_topo():
    # Cleanup: stop network
    info("*** Terminating Mininet network...\n")
    net.stop()
-   cleanup() # Perform full cleanup again at the end
+   # cleanup() # COMMENTED OUT to preserve PCAP file in /tmp/
+   info(f"*** Note: The PCAP file '{PCAP_FILE}' was NOT removed for your analysis.\n")
+   info("         You can manually clean up Mininet instances with 'sudo mn -c' when finished.\n")
 
 
 # Main entry point
