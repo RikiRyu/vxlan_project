@@ -1,6 +1,6 @@
 # VXLAN Lab Example with Containernet
 
-This repository contains a Python script (`vxlan_lab.py`) that demonstrates the functionality of VXLAN (Virtual Extensible LAN) using Containernet. It sets up a network topology with two Virtual Tunnel Endpoints (VTEPs) and two separate LAN segments, showing how Layer 2 frames are encapsulated into IP/UDP packets to extend a virtual network across an IP transport network.
+This repository contains a Python script (`vxlan_lab.py`) that demonstrates the functionality of VXLAN (Virtual Extensible LAN). It sets up a network topology with two Virtual Tunnel Endpoints (VTEPs) and two separate LAN segments, showing how Layer 2 frames are encapsulated into IP/UDP packets to extend a virtual network across an IP transport network.
 
 ## Project Goal
 
@@ -50,7 +50,7 @@ For better manageability, it is recommended to use your own terminal and SSH int
     ```
 3.  The password is "vagrant".
 
-## How to Run the Project
+## How to Run the Lab
 
 1.  **Clone the repository (or copy the script) onto your VM:**
     Once logged into your VM via SSH, you can clone this repository:
@@ -74,14 +74,16 @@ For better manageability, it is recommended to use your own terminal and SSH int
     * Configure IP addresses for the transport network interfaces on VTEPs.
     * Establish the VXLAN tunnel between br1 and br2 with VNI 100.
     * Configure IP addresses for all hosts (h1, h2, h3, h4).
+    * **Configure ebtables for local host isolation:** This will prevent direct Layer 2 communication between hosts connected to the *same* VTEP (e.g., h1 and h2) while still allowing communication via the VXLAN tunnel.
     * **Execute automatic tests:**
-        * `ping` tests between h1 and h3, and h2 and h4, demonstrating Layer 2 connectivity over VXLAN.
+        * `ping` tests between h1 and h3, and h2 and h4, demonstrating Layer 2 connectivity over VXLAN. These should **succeed**.
+        * `ping` tests between h1 and h2, and h3 and h4, demonstrating local Layer 2 isolation. These should **fail**.
     * **Capture network traffic:** `tcpdump` will capture VXLAN traffic on the `br1-eth2` (transport) interface, saving it to `/tmp/vxlan_outer.pcap`.
     * **Perform preliminary analysis:** `tshark` will analyze the captured PCAP file and print a summary of detected VXLAN VNIs and an example packet dissection directly in the terminal.
-    * Enter the **Mininet CLI**, allowing you to perform further manual tests (e.g., `h1 ping h4`, `br1 ip a`, `br2 brctl show`).
+    * Enter the **Mininet CLI**, allowing you to perform further manual tests (e.g., `h1 ping h4`, `br1 ip a`, `br2 brctl show`). If you wish to interrupt a `ping` command in the CLI, press `Ctrl+C`.
 
 4.  **Exit the Mininet CLI:**
-    Type `exit` and press Enter to terminate the Mininet simulation. The script will then perform a final cleanup.
+    Type `exit` and press Enter to terminate the Mininet simulation. The script will then perform a final cleanup, explicitly noting that the PCAP file has been preserved.
 
 ## Analyzing the Captured Traffic with Wireshark
 
@@ -101,7 +103,7 @@ To analyze the VXLAN encapsulation:
     Then, open the transferred file with Wireshark on your host machine.
 
 2.  **Apply a display filter:**
-    In the Wireshark filter bar, type `vxlan` or `udp.port == 4789` and press Enter. This will show only the VXLAN encapsulated packets.
+    In thereshark filter bar, type `vxlan` or `udp.port == 4789` and press Enter. This will show only the VXLAN encapsulated packets.
 
 3.  **Inspect packet details:**
     Select any VXLAN packet and expand its details in the "Packet Details" pane. You will observe:
