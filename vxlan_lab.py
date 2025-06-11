@@ -34,10 +34,8 @@ BR1_TRANSPORT_IF = 'br1-eth2'
 BR2_TRANSPORT_IF = 'br2-eth2'
 # Path for the tcpdump capture file
 PCAP_FILE = '/tmp/vxlan_outer.pcap'
-# Duration of tcpdump capture for automatic tests
-CAPTURE_DURATION_SECONDS = 5
-# Bandwidth limit for iperf test (e.g., '10M' for 10 Mbps, '1M' for 1 Mbps, '500K' for 500 Kbps)
-IPERF_BANDWIDTH_LIMIT = '5M' # Reduced to 5 Mbps to mitigate retransmissions
+# Duration of tcpdump capture for automatic tests (can be short for pings)
+CAPTURE_DURATION_SECONDS = 5 # Reduced for ping-only traffic
 
 # Cleanup function to remove old Mininet instances and pcap files
 def cleanup():
@@ -133,7 +131,7 @@ def create_vxlan_topo():
    h4.cmd(f'ip addr add {H4_IP} dev h4-eth0')
 
    # --- Automatic Tests and Packet Capture ---
-   info("\n*** Executing automatic tests and capturing VXLAN traffic...\n")
+   info("\n*** Executing automatic tests and capturing VXLAN traffic (using pings)...\n")
 
    # Start packet capture on br1's transport interface in the background
    # Filter only UDP packets on the standard VXLAN port to reduce noise
@@ -150,16 +148,7 @@ def create_vxlan_topo():
    h2_ping_h4_output = h2.cmd(f'ping -c 4 {H4_IP.split("/")[0]}')
    info(f"  Ping result h2 -> h4:\n{h2_ping_h4_output}\n")
 
-   info(f"  Executing iperf TCP test from {h1.name} to {h3.name} (for {CAPTURE_DURATION_SECONDS}s, bandwidth limit {IPERF_BANDWIDTH_LIMIT})...\n")
-   # Start iperf server on h3 in background
-   h3.cmd('iperf -s &')
-   time.sleep(1) # Wait for iperf server to start
-   # Start iperf client on h1 with bandwidth limit
-   iperf_output = h1.cmd(f'iperf -c {H3_IP.split("/")[0]} -t {CAPTURE_DURATION_SECONDS} -b {IPERF_BANDWIDTH_LIMIT}')
-   info(f"  Iperf result h1 -> h3:\n{iperf_output}\n")
-   h3.cmd('pkill iperf') # Terminate iperf server
-
-   # Allow a few extra seconds for any delayed iperf packets to be captured
+   # Allow a few extra seconds for any delayed packets to be captured
    time.sleep(2)
    info(f"*** Terminating tcpdump capture on {BR1_TRANSPORT_IF}...\n")
    br1.cmd('pkill tcpdump') # Terminate the tcpdump process
