@@ -1,4 +1,4 @@
-# VXLAN Lab Example with Containernet
+# VXLAN Demo Example with Containernet
 
 This repository contains a Python script (`vxlan_lab.py`) that demonstrates the functionality of VXLAN (Virtual Extensible LAN). It sets up a network topology with two Virtual Tunnel Endpoints (VTEPs) and two separate LAN segments, showing how Layer 2 frames are encapsulated into IP/UDP packets to extend a virtual network across an IP transport network.
 
@@ -49,15 +49,14 @@ For better manageability, it is recommended to use your own terminal and SSH int
     ```
 3.  The password is "vagrant".
 
-## How to Run the Lab
+## How to Run the Demo
 
 1.  **Clone the repository (or copy the script) onto your VM:**
     Once logged into your VM via SSH, you can clone this repository:
     ```bash
     git clone [https://github.com/RikiRyu/vxlan_project.git](https://github.com/RikiRyu/vxlan_project.git)
     cd vxlan_project
-    ```
-    (If you already have the `vxlan_lab.py` file on your VM, you can skip cloning and just ensure you are in the directory containing the script.)
+    ```rm
 
 2.  **Execute the script:**
     Run the Python script with `sudo` privileges:
@@ -95,15 +94,11 @@ To analyze the VXLAN encapsulation:
     ```bash
     wireshark /tmp/vxlan_capture.pcap &
     ```
-    Alternatively, you can transfer the `.pcap` file to your host machine using `scp` and open it with your local Wireshark installation.
 
-2.  **Apply a display filter:**
-    In the Wireshark filter bar, type `vxlan` or `udp.port == 4789` and press Enter. This will show only the VXLAN encapsulated packets.
-
-3.  **Inspect packet details:**
+2.  **Inspect packet details:**
     Select any VXLAN packet and expand its details in the "Packet Details" pane. You will observe:
     * **Outer IP Header**: The IP addresses of the VTEPs (e.g., `192.168.1.1` and `192.168.1.2`).
-    * **Outer UDP Header**: The source and destination UDP ports, with the destination typically being `4789`.
+    * **Outer UDP Header**: The source and destination UDP ports, with the destination being `4789`.
     * **VXLAN Header**: This header contains the **VNI (Virtual Network Identifier)**, which should be `100` in this case.
     * **Inner Ethernet Frame**: This is the original Layer 2 frame that was encapsulated. Its source and destination MAC addresses will be those of the hosts (e.g., `h1`'s MAC and `h3`'s MAC).
     * **Inner IP Header**: The IP addresses of the communicating hosts (e.g., `10.0.0.1` and `10.0.0.3`).
