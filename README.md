@@ -56,7 +56,7 @@ For better manageability, it is recommended to use your own terminal and SSH int
     ```bash
     git clone [https://github.com/RikiRyu/vxlan_project.git](https://github.com/RikiRyu/vxlan_project.git)
     cd vxlan_project
-    ```rm
+    ```
 
 2.  **Execute the script:**
     Run the Python script with `sudo` privileges:
@@ -92,7 +92,7 @@ To analyze the VXLAN encapsulation:
 1.  **Open Wireshark on your VM or transfer the file to your host machine:**
     If your VM has a graphical desktop environment, you can open Wireshark directly from the terminal:
     ```bash
-    wireshark /tmp/vxlan_capture.pcap &
+    wireshark /tmp/vxlan_capture.pcap
     ```
 
 2.  **Inspect packet details:**
@@ -102,5 +102,3 @@ To analyze the VXLAN encapsulation:
     * **VXLAN Header**: This header contains the **VNI (Virtual Network Identifier)**, which should be `100` in this case.
     * **Inner Ethernet Frame**: This is the original Layer 2 frame that was encapsulated. Its source and destination MAC addresses will be those of the hosts (e.g., `h1`'s MAC and `h3`'s MAC).
     * **Inner IP Header**: The IP addresses of the communicating hosts (e.g., `10.0.0.1` and `10.0.0.3`).
-
-This detailed dissection in Wireshark visually confirms how VXLAN effectively tunnels Layer 2 traffic over a Layer 3 network.
